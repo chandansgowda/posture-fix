@@ -46,11 +46,17 @@ Sources/PostureFix/
   HeadphoneMotionService.swift # CMHeadphoneMotionManager wrapper
   PostureAnalyzer.swift        # baseline, filtering, slouch detection
   AlertManager.swift           # sound + voice + notification
-  MenuContentView.swift        # SwiftUI menu UI
+  AudioDeviceMonitor.swift     # CoreAudio output-device (AirPods) detection
+  HistoryStore.swift           # persistent per-day posture history
+  MenuContentView.swift        # SwiftUI menu UI (status, stats, history, settings)
 Resources/Info.plist           # bundle id, LSUIElement, NSMotionUsageDescription
+Resources/AppIcon.icns         # generated app icon
+scripts/make_icon.swift        # regenerates Resources/AppIcon.icns
 build.sh / Makefile            # assemble + sign the .app
-HomebrewFormula/posture-fix.rb
 ```
+
+The Homebrew formula lives in the tap repo
+[`chandansgowda/homebrew-posture-fix`](https://github.com/chandansgowda/homebrew-posture-fix).
 
 Keep responsibilities separated: motion I/O in `HeadphoneMotionService`,
 detection logic in `PostureAnalyzer`, user-facing alerts in `AlertManager`, and
