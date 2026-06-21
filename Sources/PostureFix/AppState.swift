@@ -1,5 +1,6 @@
 import Foundation
 import Combine
+import ServiceManagement
 
 /// Central view-model. Wires the motion stream → posture analysis → alerts,
 /// exposes everything the menu UI needs, and persists settings to UserDefaults.
@@ -19,6 +20,11 @@ final class AppState: ObservableObject {
     @Published private(set) var livePitch: Double = 0
     @Published private(set) var deviation: Double = 0
     @Published private(set) var isCalibrated = false
+
+    /// Whether PostureFix is registered to launch at login (source of truth is
+    /// the system, via SMAppService — not UserDefaults).
+    @Published private(set) var launchAtLogin = false
+    @Published private(set) var loginItemError: String?
 
     // MARK: Settings (persisted)
 
@@ -76,6 +82,8 @@ final class AppState: ObservableObject {
             self?.handle(pitch: pitch)
         }
 
+        refreshLoginItemStatus()
+
         // Re-publish nested motion changes (connection state) to the UI.
         motion.objectWillChange
             .sink { [weak self] _ in self?.objectWillChange.send() }
@@ -109,6 +117,30 @@ final class AppState: ObservableObject {
         isCalibrated = false
         postureState = .unknown
         deviation = 0
+    }
+
+    // MARK: Launch at login
+
+    func refreshLoginItemStatus() {
+        launchAtLogin = (SMAppService.mainApp.status == .enabled)
+    }
+
+    func setLaunchAtLogin(_ enabled: Bool) {
+        do {
+            if enabled {
+                if SMAppService.mainApp.status != .enabled {
+                    try SMAppService.mainApp.register()
+                }
+            } else {
+                if SMAppService.mainApp.status == .enabled {
+                    try SMAppService.mainApp.unregister()
+                }
+            }
+            loginItemError = nil
+        } catch {
+            loginItemError = error.localizedDescription
+        }
+        refreshLoginItemStatus()
     }
 
     // MARK: Pipeline

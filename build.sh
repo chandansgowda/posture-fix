@@ -32,6 +32,11 @@ mkdir -p "$CONTENTS/MacOS" "$CONTENTS/Resources"
 
 cp "$BIN_DIR/$APP_NAME" "$CONTENTS/MacOS/$APP_NAME"
 cp "$ROOT/Resources/Info.plist" "$CONTENTS/Info.plist"
+if [[ -f "$ROOT/Resources/AppIcon.icns" ]]; then
+    cp "$ROOT/Resources/AppIcon.icns" "$CONTENTS/Resources/AppIcon.icns"
+else
+    echo "  (no Resources/AppIcon.icns — generate it with: swift scripts/make_icon.swift)"
+fi
 
 if [[ -n "${SIGN_IDENTITY:-}" ]]; then
     echo "› Code signing with: $SIGN_IDENTITY (+ headphone-motion entitlement)"

@@ -126,6 +126,18 @@ struct MenuContentView: View {
                 Toggle("Notifications", isOn: $state.notificationsEnabled)
                 Toggle("Reverse detection", isOn: $state.invert)
                     .help("Enable if alerts fire when you sit up instead of slouch.")
+
+                Divider()
+
+                Toggle("Start at login", isOn: Binding(
+                    get: { state.launchAtLogin },
+                    set: { state.setLaunchAtLogin($0) }
+                ))
+                if let loginError = state.loginItemError {
+                    Text(loginError)
+                        .font(.caption2)
+                        .foregroundStyle(.orange)
+                }
             }
             .padding(.top, 6)
             .font(.callout)

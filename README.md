@@ -81,6 +81,9 @@ make uninstall     # remove /Applications/PostureFix.app
 - **Sound / Spoken / Notification** cues — toggle each on/off.
 - **Reverse detection** — flip if alerts fire when you sit up (depends on how
   your AirPods seat in your ears).
+- **Start at login** — register PostureFix as a macOS login item via
+  `SMAppService` so it's always watching your posture. (Works best when the app
+  lives in `/Applications` — run `make install`.)
 
 ## Distribution via Homebrew
 
@@ -111,7 +114,9 @@ Sources/PostureFix/
   AlertManager.swift          # sound + voice + notification
   MenuContentView.swift       # SwiftUI menu UI
 Resources/Info.plist          # bundle id, LSUIElement, NSMotionUsageDescription
+Resources/AppIcon.icns        # generated app icon
 PostureFix.entitlements       # headphone-motion (only for Developer ID builds)
+scripts/make_icon.swift       # regenerates Resources/AppIcon.icns
 build.sh / Makefile           # assemble + sign the .app
 HomebrewFormula/posture-fix.rb
 ```
@@ -132,13 +137,13 @@ guide. The short version:
    (hardware used, what you observed).
 5. **Open a PR** against `main` and link any related issue.
 
-Good first contributions: an app icon, custom alert sounds, a "start at login"
-toggle (`SMAppService`), posture session stats/history, or per-device
-calibration profiles.
+Good first contributions: custom/configurable alert sounds, posture session
+stats/history, per-device calibration profiles, or a notarized Homebrew release.
 
 ## Roadmap
 
-- App icon + custom alert sounds.
-- Posture session stats / history graph.
-- "Start at login" toggle (`SMAppService`).
-- Published Homebrew tap + notarized release.
+- [x] App icon.
+- [x] "Start at login" toggle (`SMAppService`).
+- [ ] Custom / configurable alert sounds.
+- [ ] Posture session stats / history graph.
+- [ ] Published Homebrew tap + notarized release.
