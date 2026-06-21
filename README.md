@@ -93,6 +93,10 @@ While monitoring (after calibration) the menu shows a live session panel:
 chart of your head-drop with the alert threshold marked. Stats reset each time
 you start a session or recalibrate.
 
+Each finished session is saved to **History** (collapsible), which shows a
+7-day stacked bar chart of good vs. slouch minutes and a weekly summary.
+History persists across launches (and is flushed if you quit mid-session).
+
 ## Distribution via Homebrew
 
 `npm` is **not** an option: there is no Node binding for Apple's Core Motion,
@@ -154,5 +158,5 @@ calibration profiles, a daily/weekly summary, or a notarized Homebrew release.
 - [x] "Start at login" toggle (`SMAppService`).
 - [x] Custom / configurable alert sounds.
 - [x] Posture session stats + live head-drop chart.
-- [ ] Persistent history across sessions (daily/weekly summary).
+- [x] Persistent history across sessions (daily/weekly summary).
 - [ ] Published Homebrew tap + notarized release.

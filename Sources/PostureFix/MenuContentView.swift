@@ -4,6 +4,7 @@ import Charts
 struct MenuContentView: View {
     @ObservedObject var state: AppState
     @State private var showSettings = false
+    @State private var showHistory = false
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
@@ -14,6 +15,8 @@ struct MenuContentView: View {
                 statsSection
             }
             controls
+            Divider()
+            historySection
             Divider()
             settingsSection
             Divider()
@@ -149,6 +152,73 @@ struct MenuContentView: View {
         }
         .buttonStyle(.borderedProminent)
         .controlSize(.large)
+    }
+
+    // MARK: History
+
+    private var historySection: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            Button {
+                withAnimation(.easeInOut(duration: 0.18)) { showHistory.toggle() }
+            } label: {
+                HStack {
+                    Image(systemName: "chart.bar.xaxis")
+                    Text("History")
+                    Spacer()
+                    Image(systemName: showHistory ? "chevron.down" : "chevron.right")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+                .contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
+
+            if showHistory {
+                historyBody
+            }
+        }
+    }
+
+    private var historyBody: some View {
+        let week = state.history.lastDays(7)
+        let totalGood = week.reduce(0) { $0 + $1.goodSeconds }
+        let totalAll = week.reduce(0) { $0 + $1.totalSeconds }
+        let weekPercent = totalAll > 0 ? totalGood / totalAll * 100 : 0
+
+        return VStack(alignment: .leading, spacing: 8) {
+            if totalAll < 1 {
+                Text("No history yet — finish a session to see your trends.")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            } else {
+                Text(String(format: "This week: %.0f%% good · %.0f min tracked",
+                            weekPercent, totalAll / 60))
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+
+                Chart(week) { day in
+                    BarMark(
+                        x: .value("Day", day.shortWeekday),
+                        y: .value("Good", day.goodMinutes)
+                    )
+                    .foregroundStyle(.green)
+                    BarMark(
+                        x: .value("Day", day.shortWeekday),
+                        y: .value("Slouch", day.badMinutes)
+                    )
+                    .foregroundStyle(.red.opacity(0.7))
+                }
+                .chartYAxisLabel("min")
+                .frame(height: 92)
+
+                HStack(spacing: 12) {
+                    Label("Good", systemImage: "square.fill").foregroundStyle(.green)
+                    Label("Slouch", systemImage: "square.fill").foregroundStyle(.red.opacity(0.7))
+                }
+                .font(.caption2)
+                .foregroundStyle(.secondary)
+            }
+        }
     }
 
     // MARK: Settings

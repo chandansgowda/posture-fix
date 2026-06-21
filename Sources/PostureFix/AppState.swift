@@ -1,6 +1,7 @@
 import Foundation
 import Combine
 import ServiceManagement
+import AppKit
 
 /// One point in the live head-drop chart.
 struct DeviationSample: Identifiable {
@@ -17,6 +18,7 @@ final class AppState: ObservableObject {
     let analyzer = PostureAnalyzer()
     let alerts = AlertManager()
     let audio = AudioDeviceMonitor()
+    let history = HistoryStore()
 
     private let defaults = UserDefaults.standard
     private var cancellables = Set<AnyCancellable>()
@@ -114,6 +116,14 @@ final class AppState: ObservableObject {
         audio.objectWillChange
             .sink { [weak self] _ in self?.objectWillChange.send() }
             .store(in: &cancellables)
+        history.objectWillChange
+            .sink { [weak self] _ in self?.objectWillChange.send() }
+            .store(in: &cancellables)
+
+        // Persist the in-progress session if the app quits mid-monitoring.
+        NotificationCenter.default.publisher(for: NSApplication.willTerminateNotification)
+            .sink { [weak self] _ in self?.flushSessionToHistory() }
+            .store(in: &cancellables)
 
         refreshLoginItemStatus()
     }
@@ -127,6 +137,7 @@ final class AppState: ObservableObject {
     }
 
     func stopMonitoring() {
+        flushSessionToHistory()
         motion.stop()
         isMonitoring = false
         postureState = .unknown
@@ -143,6 +154,7 @@ final class AppState: ObservableObject {
     }
 
     func recalibrate() {
+        flushSessionToHistory()
         analyzer.reset()
         isCalibrated = false
         postureState = .unknown
@@ -179,6 +191,17 @@ final class AppState: ObservableObject {
     }
 
     // MARK: Pipeline
+
+    /// Save the current session's accumulated time into today's history, then
+    /// zero the live counters so they can't be double-counted.
+    func flushSessionToHistory() {
+        let total = goodSeconds + badSeconds
+        guard total >= 5 else { return }   // ignore trivial/aborted sessions
+        history.record(good: goodSeconds, bad: badSeconds, slouches: slouchEvents, on: Date())
+        goodSeconds = 0
+        badSeconds = 0
+        slouchEvents = 0
+    }
 
     private func resetSession() {
         goodSeconds = 0
