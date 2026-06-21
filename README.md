@@ -1,106 +1,82 @@
 <div align="center">
 
-<img src="docs/icon.png" width="120" alt="PostureFix icon" />
+<img src="docs/icon.png" width="110" alt="PostureFix" />
 
 # PostureFix
 
-**Fix your posture while you work — using the motion sensors already in your AirPods.**
+**Fix your posture while you work — using the motion sensors in your AirPods.**
 
 [![macOS](https://img.shields.io/badge/macOS-14%2B-black?logo=apple&logoColor=white)](https://www.apple.com/macos/)
 [![Swift](https://img.shields.io/badge/Swift-5.9-orange?logo=swift&logoColor=white)](https://swift.org)
 [![License](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
-[![Homebrew](https://img.shields.io/badge/install-Homebrew-f9a825?logo=homebrew&logoColor=white)](#-install)
-
-PostureFix lives in your menu bar, reads the head-motion sensors in your AirPods,
-and gives you a gentle nudge the moment your neck starts to slouch toward the screen.
 
 </div>
 
----
+PostureFix sits in your menu bar, reads your AirPods' head-motion sensors, and
+nudges you the moment your neck starts to slouch toward the screen.
 
-## ✨ Features
+## Install
 
-- 🎧 **Uses your AirPods** — no extra hardware. Reads head pitch via Apple's Core Motion.
-- 🎯 **One-tap calibration** — set your upright baseline, and PostureFix watches for slouching.
-- 🔔 **Gentle nudges** — in-ear sound, optional spoken cue, and a macOS notification (with cooldown).
-- 📊 **Live stats & history** — see your good-posture %, slouch count, and a 7-day trend chart.
-- ⚙️ **Tunable** — adjust sensitivity, hold time, cooldown, and alert sound.
-- 🚀 **Start at login** — set it and forget it.
-- 🔒 **100% private** — all motion data stays on your Mac. Nothing is ever uploaded.
-
-## 📦 Install
-
-### Homebrew (recommended)
+Homebrew:
 
 ```bash
 brew install chandansgowda/posture-fix/posture-fix
 posture-fix
 ```
 
-That's it — `posture-fix` launches the menu-bar app. To keep it in Spotlight,
-copy it to Applications (Homebrew prints the exact path after install).
-
-### From source
+From source (requires macOS 14+ and Xcode):
 
 ```bash
 git clone https://github.com/chandansgowda/posture-fix.git
-cd posture-fix
-make run
+cd posture-fix && make run
 ```
 
-> Requires macOS 14+ and Xcode (Swift 5.9+). `make install` copies the app to `/Applications`.
+## First run
 
-## ▶️ First run
+1. Connect your AirPods (Pro, 3rd gen, Max, or Beats Fit Pro).
+2. Click the menu-bar icon → **Start monitoring**, then allow the Motion and
+   Notification prompts.
+3. Sit up straight, then click **Calibrate**.
+4. Slouch and you'll get a nudge.
 
-1. **Connect your AirPods** (Pro, 3rd gen, Max, or Beats Fit Pro).
-2. Click the menu-bar icon → **Start monitoring**.
-3. Allow the **Motion** and **Notification** prompts.
-4. **Sit up straight**, then click **Calibrate**.
-5. Done — slouch and you'll get a nudge. 🎉
+## Features
 
-## ⚙️ Settings
+- Reads head pitch via Apple's Core Motion — no extra hardware.
+- One-tap calibration of your upright baseline.
+- Nudges via in-ear sound, an optional spoken cue, and a macOS notification.
+- Live stats and a 7-day history chart.
+- Tunable sensitivity, hold time, cooldown, and alert sound.
+- Start at login. Fully local — nothing leaves your Mac.
 
-| Setting | What it does |
+## Settings
+
+| Setting | Description |
 | --- | --- |
-| **Sensitivity** | How far your head must drop before it counts as slouching |
-| **Hold before alert** | How long you must slouch before being nudged |
-| **Alert cooldown** | Minimum gap between nudges |
-| **Alert sound** | Pick the system sound (with preview) |
-| **Sound / Spoken / Notification** | Toggle each cue on or off |
-| **Reverse detection** | Flip if alerts fire when you sit up instead of slouch |
-| **Start at login** | Launch PostureFix automatically |
+| Sensitivity | How far your head must drop before it counts as slouching |
+| Hold before alert | How long you must slouch before being nudged |
+| Alert cooldown | Minimum gap between nudges |
+| Alert sound | Pick the system sound (with preview) |
+| Sound / Spoken / Notification | Toggle each cue on or off |
+| Reverse detection | Flip if alerts fire when you sit up instead of slouch |
+| Start at login | Launch PostureFix automatically |
 
-## 🧠 How it works
+## How it works
 
-Modern AirPods contain a 9-axis IMU (gyroscope + accelerometer + magnetometer)
-that Apple exposes through `CMHeadphoneMotionManager` — the same data that powers
-Spatial Audio head tracking. PostureFix:
+Modern AirPods expose a 9-axis IMU through `CMHeadphoneMotionManager` — the data
+behind Spatial Audio head tracking. PostureFix streams your head pitch, captures
+an upright baseline when you calibrate, filters the signal, and flags a slouch
+when your head stays dropped past your threshold for a few seconds. There's no
+API to buzz AirPods, so the nudge is an in-ear sound/voice cue.
 
-1. Streams your head **pitch** in real time.
-2. Captures an upright **baseline** when you calibrate.
-3. Low-pass filters the signal and flags a slouch when your head stays dropped
-   past your threshold for a few seconds.
-4. Nudges you, then logs the session to your local history.
+## Compatibility
 
-> **Why sound and not haptics?** There's no public API to buzz the AirPods, so
-> every AirPods posture app uses an in-ear sound/voice cue. PostureFix does too.
+macOS 14+. AirPods Pro (1st/2nd gen), AirPods (3rd gen), AirPods Max, or
+Beats Fit Pro.
 
-## 🛡️ Privacy
+## Contributing
 
-PostureFix processes everything **locally**. No accounts, no network calls, no
-telemetry. Your motion data and history never leave your Mac.
+PRs welcome — see [CONTRIBUTING.md](CONTRIBUTING.md).
 
-## 💻 Compatibility
-
-- **macOS:** 14 (Sonoma) or later
-- **Headphones:** AirPods Pro (1st/2nd gen), AirPods (3rd gen), AirPods Max, Beats Fit Pro
-
-## 🤝 Contributing
-
-PRs welcome! See [CONTRIBUTING.md](CONTRIBUTING.md) for setup, project layout,
-and guidelines. Good first issues: persistent multi-week history, per-device
-calibration profiles, or a notarized release.
-
-## 📄 License
+## License
 
 [MIT](LICENSE) © chandansgowda
