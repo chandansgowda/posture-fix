@@ -1,4 +1,5 @@
 import SwiftUI
+import Charts
 
 struct MenuContentView: View {
     @ObservedObject var state: AppState
@@ -9,6 +10,9 @@ struct MenuContentView: View {
             header
             Divider()
             statusSection
+            if state.isMonitoring && state.isCalibrated {
+                statsSection
+            }
             controls
             Divider()
             settingsSection
@@ -61,6 +65,56 @@ struct MenuContentView: View {
         }
     }
 
+    // MARK: Session stats + chart
+
+    private var statsSection: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            HStack(spacing: 0) {
+                statTile("Good posture", String(format: "%.0f%%", state.goodPosturePercent))
+                statTile("Slouches", "\(state.slouchEvents)")
+                statTile("Session", state.monitoredTimeString)
+            }
+
+            Chart {
+                ForEach(state.recentSamples) { sample in
+                    LineMark(
+                        x: .value("Sample", sample.id),
+                        y: .value("Head drop", sample.drop)
+                    )
+                    .interpolationMethod(.monotone)
+                    .foregroundStyle(.tint)
+                }
+                RuleMark(y: .value("Threshold", state.threshold))
+                    .lineStyle(StrokeStyle(lineWidth: 1, dash: [4, 3]))
+                    .foregroundStyle(.red.opacity(0.5))
+            }
+            .chartYScale(domain: 0...chartUpperBound)
+            .chartXAxis(.hidden)
+            .chartYAxis {
+                AxisMarks(position: .leading, values: .automatic(desiredCount: 3))
+            }
+            .frame(height: 64)
+            .tint(state.postureState == .bad ? .red : .green)
+        }
+    }
+
+    private func statTile(_ title: String, _ value: String) -> some View {
+        VStack(spacing: 2) {
+            Text(value)
+                .font(.headline)
+                .monospacedDigit()
+            Text(title)
+                .font(.caption2)
+                .foregroundStyle(.secondary)
+        }
+        .frame(maxWidth: .infinity)
+    }
+
+    private var chartUpperBound: Double {
+        let peak = state.recentSamples.map(\.drop).max() ?? 0
+        return max(state.threshold * 1.6, peak + 2)
+    }
+
     // MARK: Controls
 
     private var controls: some View {
@@ -100,49 +154,74 @@ struct MenuContentView: View {
     // MARK: Settings
 
     private var settingsSection: some View {
-        DisclosureGroup("Settings", isExpanded: $showSettings) {
-            VStack(alignment: .leading, spacing: 10) {
-                sliderRow(
-                    title: "Sensitivity",
-                    value: $state.threshold,
-                    range: 5...30,
-                    suffix: "° drop"
-                )
-                sliderRow(
-                    title: "Hold before alert",
-                    value: $state.holdSeconds,
-                    range: 1...10,
-                    suffix: "s"
-                )
-                sliderRow(
-                    title: "Alert cooldown",
-                    value: $state.cooldown,
-                    range: 5...120,
-                    suffix: "s"
-                )
-
-                Toggle("Sound cue", isOn: $state.soundEnabled)
-                Toggle("Spoken cue", isOn: $state.voiceEnabled)
-                Toggle("Notifications", isOn: $state.notificationsEnabled)
-                Toggle("Reverse detection", isOn: $state.invert)
-                    .help("Enable if alerts fire when you sit up instead of slouch.")
-
-                Divider()
-
-                Toggle("Start at login", isOn: Binding(
-                    get: { state.launchAtLogin },
-                    set: { state.setLaunchAtLogin($0) }
-                ))
-                if let loginError = state.loginItemError {
-                    Text(loginError)
-                        .font(.caption2)
-                        .foregroundStyle(.orange)
+        VStack(alignment: .leading, spacing: 10) {
+            Button {
+                withAnimation(.easeInOut(duration: 0.18)) { showSettings.toggle() }
+            } label: {
+                HStack {
+                    Image(systemName: "gearshape")
+                    Text("Settings")
+                    Spacer()
+                    Image(systemName: showSettings ? "chevron.down" : "chevron.right")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
                 }
+                .contentShape(Rectangle())
             }
-            .padding(.top, 6)
-            .font(.callout)
+            .buttonStyle(.plain)
+
+            if showSettings {
+                settingsBody
+            }
+        }
+    }
+
+    private var settingsBody: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            sliderRow(title: "Sensitivity", value: $state.threshold, range: 5...30, suffix: "° drop")
+            sliderRow(title: "Hold before alert", value: $state.holdSeconds, range: 1...10, suffix: "s")
+            sliderRow(title: "Alert cooldown", value: $state.cooldown, range: 5...120, suffix: "s")
+
+            HStack {
+                Text("Alert sound")
+                Spacer()
+                Picker("", selection: $state.soundName) {
+                    ForEach(AlertManager.availableSounds, id: \.self) { name in
+                        Text(name).tag(name)
+                    }
+                }
+                .labelsHidden()
+                .frame(width: 110)
+                Button {
+                    state.previewSound()
+                } label: {
+                    Image(systemName: "play.circle")
+                }
+                .buttonStyle(.borderless)
+                .help("Preview sound")
+            }
+            .disabled(!state.soundEnabled)
+
+            Toggle("Sound cue", isOn: $state.soundEnabled)
+            Toggle("Spoken cue", isOn: $state.voiceEnabled)
+            Toggle("Notifications", isOn: $state.notificationsEnabled)
+            Toggle("Reverse detection", isOn: $state.invert)
+                .help("Enable if alerts fire when you sit up instead of slouch.")
+
+            Divider()
+
+            Toggle("Start at login", isOn: Binding(
+                get: { state.launchAtLogin },
+                set: { state.setLaunchAtLogin($0) }
+            ))
+            if let loginError = state.loginItemError {
+                Text(loginError)
+                    .font(.caption2)
+                    .foregroundStyle(.orange)
+            }
         }
         .font(.callout)
+        .padding(.top, 2)
     }
 
     private func sliderRow(
@@ -174,7 +253,7 @@ struct MenuContentView: View {
 
     private var statusColor: Color {
         if state.motion.lastError != nil { return .orange }
-        if !state.isMonitoring { return .secondary }
+        if !state.isMonitoring { return state.isConnected ? .green : .secondary }
         if !state.isCalibrated { return .blue }
         switch state.postureState {
         case .good:    return .green

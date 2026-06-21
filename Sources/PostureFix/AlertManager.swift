@@ -7,14 +7,33 @@ import UserNotifications
 /// macOS notification. A cooldown prevents alert spam while you're slouching.
 final class AlertManager {
 
+    /// macOS system sounds (from /System/Library/Sounds) offered as alert cues.
+    static let availableSounds = [
+        "Funk", "Glass", "Ping", "Submarine", "Hero",
+        "Tink", "Sosumi", "Pop", "Purr", "Bottle", "Blow"
+    ]
+
     var soundEnabled = true
     var voiceEnabled = false
     var notificationEnabled = true
     var cooldown: TimeInterval = 20
+    var soundName = "Funk" {
+        didSet { reloadSound() }
+    }
 
     private var lastAlert: Date?
     private let synth = AVSpeechSynthesizer()
-    private let sound = NSSound(named: "Funk") ?? NSSound(named: "Submarine")
+    private var sound = NSSound(named: "Funk")
+
+    private func reloadSound() {
+        sound = NSSound(named: NSSound.Name(soundName)) ?? NSSound(named: "Funk")
+    }
+
+    /// Play the currently selected alert sound once (for previewing in settings).
+    func previewSound() {
+        sound?.stop()
+        sound?.play()
+    }
 
     func requestNotificationAuthorization() {
         UNUserNotificationCenter.current()

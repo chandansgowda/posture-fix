@@ -79,11 +79,19 @@ make uninstall     # remove /Applications/PostureFix.app
 - **Hold before alert** — how long you must slouch before being nudged.
 - **Alert cooldown** — minimum gap between nudges.
 - **Sound / Spoken / Notification** cues — toggle each on/off.
+- **Alert sound** — pick which macOS system sound plays, with a preview button.
 - **Reverse detection** — flip if alerts fire when you sit up (depends on how
   your AirPods seat in your ears).
 - **Start at login** — register PostureFix as a macOS login item via
   `SMAppService` so it's always watching your posture. (Works best when the app
   lives in `/Applications` — run `make install`.)
+
+### Live stats
+
+While monitoring (after calibration) the menu shows a live session panel:
+**good-posture %**, **slouch count**, and **session time**, plus a real-time
+chart of your head-drop with the alert threshold marked. Stats reset each time
+you start a session or recalibrate.
 
 ## Distribution via Homebrew
 
@@ -137,13 +145,14 @@ guide. The short version:
    (hardware used, what you observed).
 5. **Open a PR** against `main` and link any related issue.
 
-Good first contributions: custom/configurable alert sounds, posture session
-stats/history, per-device calibration profiles, or a notarized Homebrew release.
+Good first contributions: persistent posture history across sessions, per-device
+calibration profiles, a daily/weekly summary, or a notarized Homebrew release.
 
 ## Roadmap
 
 - [x] App icon.
 - [x] "Start at login" toggle (`SMAppService`).
-- [ ] Custom / configurable alert sounds.
-- [ ] Posture session stats / history graph.
+- [x] Custom / configurable alert sounds.
+- [x] Posture session stats + live head-drop chart.
+- [ ] Persistent history across sessions (daily/weekly summary).
 - [ ] Published Homebrew tap + notarized release.
