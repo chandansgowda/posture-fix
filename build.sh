@@ -20,9 +20,15 @@ APP_NAME="PostureFix"
 ROOT="$(cd "$(dirname "$0")" && pwd)"
 cd "$ROOT"
 
-BIN_DIR="$(swift build -c "$CONFIG" --show-bin-path)"
+# --disable-sandbox lets the build run inside Homebrew's build sandbox, where
+# SwiftPM's own nested sandbox otherwise fails with
+# "sandbox-exec: sandbox_apply: Operation not permitted". Safe here — the
+# package has no build tool plugins.
+SWIFT_FLAGS=(-c "$CONFIG" --disable-sandbox)
+
+BIN_DIR="$(swift build "${SWIFT_FLAGS[@]}" --show-bin-path)"
 echo "› Compiling ($CONFIG)…"
-swift build -c "$CONFIG"
+swift build "${SWIFT_FLAGS[@]}"
 
 APP_BUNDLE="$BIN_DIR/$APP_NAME.app"
 CONTENTS="$APP_BUNDLE/Contents"
