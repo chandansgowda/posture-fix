@@ -77,9 +77,10 @@ ad-hoc), `build.sh` / `Makefile` (bundle assembly + signing).
 ## Distribution
 
 - Main repo: `chandansgowda/posture-fix` (public, MIT).
-- Homebrew tap: `chandansgowda/homebrew-posture-fix` → `Formula/posture-fix.rb`
-  (builds from the tagged source tarball).
-- Install: `brew install chandansgowda/posture-fix/posture-fix`
+- Homebrew tap: shared repo `chandansgowda/homebrew-tap` → `Formula/posture-fix.rb`
+  (builds from the tagged source tarball). The old single-project tap
+  `homebrew-posture-fix` is deprecated.
+- Install: `brew install chandansgowda/tap/posture-fix`
 
 ### Cutting a release
 
@@ -88,8 +89,9 @@ ad-hoc), `build.sh` / `Makefile` (bundle assembly + signing).
 3. `git tag vX.Y.Z && git push origin vX.Y.Z` ; `gh release create vX.Y.Z`.
 4. `shasum -a 256` of
    `https://github.com/chandansgowda/posture-fix/archive/refs/tags/vX.Y.Z.tar.gz`.
-5. Update the tap's `Formula/posture-fix.rb` `url` + `sha256`; push the tap.
-6. Verify with `brew install` / `brew upgrade chandansgowda/posture-fix/posture-fix`.
+5. In `chandansgowda/homebrew-tap`, update `Formula/posture-fix.rb` `url` +
+   `sha256`; push the tap.
+6. Verify with `brew install` / `brew upgrade chandansgowda/tap/posture-fix`.
 
 ## Testing
 

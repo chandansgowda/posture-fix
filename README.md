@@ -20,7 +20,7 @@ nudges you the moment your neck starts to slouch toward the screen.
 Homebrew:
 
 ```bash
-brew install chandansgowda/posture-fix/posture-fix
+brew install chandansgowda/tap/posture-fix
 posture-fix
 ```
 

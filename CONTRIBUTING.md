@@ -55,8 +55,9 @@ scripts/make_icon.swift        # regenerates Resources/AppIcon.icns
 build.sh / Makefile            # assemble + sign the .app
 ```
 
-The Homebrew formula lives in the tap repo
-[`chandansgowda/homebrew-posture-fix`](https://github.com/chandansgowda/homebrew-posture-fix).
+The Homebrew formula lives in the shared tap repo
+[`chandansgowda/homebrew-tap`](https://github.com/chandansgowda/homebrew-tap)
+(`Formula/posture-fix.rb`).
 
 Keep responsibilities separated: motion I/O in `HeadphoneMotionService`,
 detection logic in `PostureAnalyzer`, user-facing alerts in `AlertManager`, and
