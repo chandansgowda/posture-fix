@@ -3,8 +3,11 @@ import Charts
 
 struct MenuContentView: View {
     @ObservedObject var state: AppState
+    @Environment(\.openURL) private var openURL
     @State private var showSettings = false
     @State private var showHistory = false
+
+    static let repoURL = URL(string: "https://github.com/chandansgowda/posture-fix")!
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
@@ -81,7 +84,7 @@ struct MenuContentView: View {
             Chart {
                 ForEach(state.recentSamples) { sample in
                     LineMark(
-                        x: .value("Sample", sample.id),
+                        x: .value("Time", sample.t),
                         y: .value("Head drop", sample.drop)
                     )
                     .interpolationMethod(.monotone)
@@ -91,6 +94,7 @@ struct MenuContentView: View {
                     .lineStyle(StrokeStyle(lineWidth: 1, dash: [4, 3]))
                     .foregroundStyle(.red.opacity(0.5))
             }
+            .chartXScale(domain: state.chartXDomain)
             .chartYScale(domain: 0...chartUpperBound)
             .chartXAxis(.hidden)
             .chartYAxis {
@@ -315,6 +319,12 @@ struct MenuContentView: View {
 
     private var footer: some View {
         HStack {
+            Button("Contribute") {
+                openURL(Self.repoURL)
+            }
+            .buttonStyle(.link)
+            .controlSize(.small)
+            .help("Open the project on GitHub")
             Spacer()
             Button("Quit") { NSApplication.shared.terminate(nil) }
                 .keyboardShortcut("q")

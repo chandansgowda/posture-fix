@@ -6,6 +6,7 @@ import AppKit
 /// One point in the live head-drop chart.
 struct DeviationSample: Identifiable {
     let id: Int
+    let t: Double      // seconds since the session started (chart x-axis)
     let drop: Double
 }
 
@@ -45,7 +46,8 @@ final class AppState: ObservableObject {
     private var lastChartTime: Date?
     private var previousState: PostureState = .unknown
     private var sampleIndex = 0
-    private let maxSamples = 150
+    private var sessionStartTime: Date?
+    private let chartWindowSeconds: Double = 60
 
     // MARK: Settings (persisted)
 
@@ -211,6 +213,7 @@ final class AppState: ObservableObject {
         sampleIndex = 0
         lastSampleTime = nil
         lastChartTime = nil
+        sessionStartTime = nil
         previousState = .unknown
     }
 
@@ -239,10 +242,14 @@ final class AppState: ObservableObject {
             // Downsample the chart to ~5 Hz to keep it light.
             let chartDue = lastChartTime.map { now.timeIntervalSince($0) >= 0.2 } ?? true
             if chartDue {
+                if sessionStartTime == nil { sessionStartTime = now }
+                let t = now.timeIntervalSince(sessionStartTime ?? now)
                 sampleIndex += 1
-                recentSamples.append(DeviationSample(id: sampleIndex, drop: max(0, deviation)))
-                if recentSamples.count > maxSamples {
-                    recentSamples.removeFirst(recentSamples.count - maxSamples)
+                recentSamples.append(DeviationSample(id: sampleIndex, t: t, drop: max(0, deviation)))
+                // Keep only the trailing time window so the chart scrolls cleanly.
+                let cutoff = t - chartWindowSeconds
+                while let first = recentSamples.first, first.t < cutoff {
+                    recentSamples.removeFirst()
                 }
                 lastChartTime = now
             }
@@ -284,6 +291,15 @@ final class AppState: ObservableObject {
     var slouchFraction: Double {
         guard threshold > 0 else { return 0 }
         return min(1, max(0, deviation / threshold))
+    }
+
+    /// Fixed-width, sliding time window for the live chart's x-axis. Anchored at
+    /// 0 until the window fills, then it slides so the latest sample is at the
+    /// right edge and old points scroll off the left.
+    var chartXDomain: ClosedRange<Double> {
+        let last = recentSamples.last?.t ?? 0
+        if last <= chartWindowSeconds { return 0...chartWindowSeconds }
+        return (last - chartWindowSeconds)...last
     }
 
     var goodPosturePercent: Double {
